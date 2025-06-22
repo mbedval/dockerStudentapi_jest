@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main  # Change this to your default branch if it's different
+  pull_request:
+    branches:
+      - main  # Change this to your default branch if it's different
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Pull Docker image
+        run: docker pull mbedval/studentendpoint
+
+      - name: Run Docker container and execute tests
+        run: |
+          docker run -d --name studentendpoint -p 3000:3000 mbedval/studentendpoint
+          sleep 5  # Wait for the server to start
+          npm install --save-dev jest supertest  # Install Jest and Supertest
+          npx jest  # Run the tests
+          docker stop studentendpoint  # Stop the container
+          docker rm studentendpoint  # Remove the container
